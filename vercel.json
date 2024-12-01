@@ -2,8 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "server.js",
+        "src": "api/save-weather.js",
         "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/api/save-weather",
+        "dest": "/api/save-weather.js"
       }
     ]
   }
