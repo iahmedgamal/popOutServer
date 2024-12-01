@@ -8,7 +8,7 @@
     ],
     "routes": [
       {
-        "src": "/api/save-weather",
+        "src": "/api/(.*)",
         "dest": "/api/save-weather.js"
       }
     ]

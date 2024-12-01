@@ -1,25 +1,26 @@
 const fastify = require('fastify')();
 const fastifyCors = require('@fastify/cors');
-const connectToDb = require('./mongodb');  
+const connectToDb = require('./mongodb');
 require('dotenv').config();
 
 fastify.register(fastifyCors, {
-  origin: process.env.FRONTEND_URL,  
-  methods: ['GET', 'POST'], 
+  origin: process.env.FRONTEND_URL || '*',
+  methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
   credentials: true,
 });
 
+// Test route
 fastify.get('/', async (request, reply) => {
-    return { itWorks: 'it works' };
+  return { message: 'Server is running locally or on Vercel' };
 });
 
+// Route to save weather data
 fastify.post('/save-weather', async (request, reply) => {
   const weatherData = request.body;
 
   try {
-    const db = await connectToDb();  
-    console.log(db)
+    const db = await connectToDb();
     const collection = db.collection('weatherData');
     const result = await collection.insertOne(weatherData);
 
@@ -30,16 +31,23 @@ fastify.post('/save-weather', async (request, reply) => {
   }
 });
 
-const start = async () => {
-  try {
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
-    console.log('Server is running at http://localhost:3000');
-  } catch (err) {
-    console.error('Error starting server:', err);
-    process.exit(1);
-  }
-};
+// Start server locally or export for Vercel
+if (require.main === module) {
+  const start = async () => {
+    try {
+      await fastify.listen({ port: 3000, host: '0.0.0.0' });
+      console.log('Server is running at http://localhost:3000');
+    } catch (err) {
+      console.error('Error starting server:', err);
+      process.exit(1);
+    }
+  };
 
-start();
-
-module.exports = fastify;
+  start();
+} else {
+  // Export for Vercel
+  module.exports = async (req, res) => {
+    await fastify.ready();
+    fastify.server.emit('request', req, res);
+  };
+}
